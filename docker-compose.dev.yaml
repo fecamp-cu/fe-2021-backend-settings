@@ -1,0 +1,56 @@
+version: "3.8"
+services:
+  settings:
+    build: .
+    networks:
+      - redis-networks
+      - postgres-network
+    volumes:
+      - ./configs:/app/configs
+
+  postgres:
+    container_name: postgres
+    image: postgres:14.2-alpine3.15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: settings
+    volumes:
+      - settings_postgres:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - postgres-network
+
+  redis:
+    container_name: redis
+    image: redis:alpine3.15
+    command: redis-server --requirepass root
+    ports:
+      - "6379:6379"
+    volumes:
+      - settings_redis:/data
+    restart: always
+    networks:
+      - redis-networks
+
+  redisinsights:
+    container_name: redisinsights
+    image: redislabs/redisinsight:latest
+    ports:
+      - "8001:8001"
+    volumes:
+      - settings_redisinsights:/data
+    restart: always
+    networks:
+      - redis-networks
+
+volumes:
+  settings_postgres:
+  settings_redis:
+  settings_redisinsights:
+
+networks:
+  redis-networks:
+  postgres-network:

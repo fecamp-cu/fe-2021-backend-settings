@@ -1,11 +1,5 @@
 package main
 
-import (
-	"github.com/fecamp-cu/fe-2021-backend-settings/src/databases"
-	"github.com/fecamp-cu/fe-2021-backend-settings/src/mock"
-)
+import ()
 
-func main() {
-	db := databases.GetDB()
-	db.CreateSetting(&mock.MockSettings)
-}
+func main() {}

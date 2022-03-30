@@ -9,6 +9,6 @@ RUN go build -o main ./src/main.go
 
 FROM alpine:3.14.4 AS production
 WORKDIR /app
-COPY --from=build /app/main .
+COPY --from=build /app/main ./src/
 EXPOSE 3000
-CMD ["./main"]
+CMD ["./src/main"]

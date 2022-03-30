@@ -1,0 +1,19 @@
+app:
+  env: dev
+  port: 3000
+  
+postgres:
+  host: localhost
+  user: postgres
+  password: root
+  database: settings
+  # default
+  timezone: Asia/Bangkok
+  port: 5432
+  sslmode: disable
+
+redis:
+  host: localhost
+  password: root
+  #default
+  port: 6379
