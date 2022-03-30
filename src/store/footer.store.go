@@ -17,9 +17,9 @@ type footerStore struct {
 	redis databases.RedisClient
 }
 
-func GetFooterStore() footerStore {
+func GetFooterStore() *footerStore {
 	lockSettings.Do(initFooterDB)
-	return footerDB
+	return &footerDB
 }
 
 func initFooterDB() {

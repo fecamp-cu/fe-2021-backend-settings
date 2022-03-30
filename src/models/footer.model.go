@@ -1,7 +1,7 @@
 package models
 
 type Footer struct {
-	ID        uint   `gorm:"primary_key" json:"id"`
+	ID        uint   `gorm:"primary_key" json:"-"`
 	Name      string `gorm:"type:text;not null" json:"name"`
 	Place     string `gorm:"type:text;not null" json:"place"`
 	Facebook  string `gorm:"type:text;not null" json:"facebook"`
