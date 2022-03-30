@@ -17,7 +17,7 @@ type footerStore struct {
 	redis databases.RedisClient
 }
 
-func GetFooterDB() footerStore {
+func GetFooterStore() footerStore {
 	lockSettings.Do(initFooterDB)
 	return footerDB
 }
@@ -41,22 +41,25 @@ func (s *footerStore) GetFooter(footer *models.Footer) error {
 	return err
 }
 
-func (s *footerStore) UpdateFooter(footer *models.Footer) error {
+func (s *footerStore) UpdateFooter(footer *models.Footer) (bool, error) {
+	isNew := false
 	tmp := models.Footer{}
 	err := s.db.First(&tmp).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return err
+		return isNew, err
 	}
 
 	// if not found, create new
 	if err == gorm.ErrRecordNotFound {
-		return s.db.Create(footer).Error
+		s.db.Create(footer)
+		isNew = true
+	} else {
+		newFooter := *footer
+		newFooter.ID = tmp.ID
+		if err := s.db.Save(newFooter).Error; err != nil {
+			return isNew, err
+		}
 	}
 
-	newFooter := *footer
-	newFooter.ID = tmp.ID
-	if err := s.db.Save(newFooter).Error; err != nil {
-		return err
-	}
-	return s.redis.Set("footer", footer)
+	return isNew, s.redis.Set("footer", footer)
 }

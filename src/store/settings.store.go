@@ -18,7 +18,7 @@ type settingsStore struct {
 	redis databases.RedisClient
 }
 
-func GetSettingsDB() settingsStore {
+func GetSetiingsStore() settingsStore {
 	lockSettings.Do(initsettingsStore)
 	return settingsDB
 }
