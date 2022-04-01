@@ -1,10 +1,8 @@
 package configs
 
 import (
-	"log"
-	"sync"
-
 	"github.com/spf13/viper"
+	"log"
 )
 
 type Configuration struct {
@@ -13,10 +11,7 @@ type Configuration struct {
 	Redis    RedisConfigs
 }
 
-var configs Configuration
-var lock sync.Once
-
-func initViper() {
+func LoadConfigs() *Configuration {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("./configs")
 	viper.AddConfigPath("../configs")
@@ -29,10 +24,5 @@ func initViper() {
 	if err := viper.Unmarshal(&configuration); err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
-	configs = configuration
-}
-
-func GetConfigs() Configuration {
-	lock.Do(initViper)
-	return configs
+	return &configuration
 }

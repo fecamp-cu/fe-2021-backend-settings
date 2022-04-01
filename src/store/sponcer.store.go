@@ -9,57 +9,60 @@ import (
 	"gorm.io/gorm"
 )
 
-var sponcerDB sponcerStore
+var sponcerDB SponcerStore
 var lockSponcer sync.Once
 
-type sponcerStore struct {
+type SponcerStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
 func initSponcer() {
-	sponcerDB = sponcerStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	sponcerDB = SponcerStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func GetSponcerStore() sponcerStore {
+func GetSponcerStore() SponcerStore {
 	lockSponcer.Do(initSponcer)
 	return sponcerDB
 }
 
-func (s *sponcerStore) CreateSponcer(sponcer *models.Sponcer) error {
+func (s *SponcerStore) CreateSponcer(sponcer *models.Sponcer) error {
 	if err := s.db.Create(sponcer).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("sponcer")
 }
 
-func (s *sponcerStore) GetAllSponcer(sponcer *[]models.Sponcer) error {
+func (s *SponcerStore) GetAllSponcer(sponcer *[]models.Sponcer) error {
 	err := s.redis.Get("sponcer", sponcer)
 	if err == redis.Nil {
 		if err := s.db.Find(sponcer).Error; err != nil {
 			return err
 		}
-		s.redis.Set("sponcer", sponcer)
+
+		if err := s.redis.Set("sponcer", sponcer); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *sponcerStore) GetSponcer(id uint, sponcer *models.Sponcer) error {
+func (s *SponcerStore) GetSponcer(id uint, sponcer *models.Sponcer) error {
 	return s.db.Where("id = ?", id).First(sponcer).Error
 }
 
-func (s *sponcerStore) UpdateSponcer(sponcer *models.Sponcer) error {
+func (s *SponcerStore) UpdateSponcer(sponcer *models.Sponcer) error {
 	if err := s.db.Save(sponcer).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("sponcer")
 }
 
-func (s *sponcerStore) DeleteSponcer(id uint) error {
+func (s *SponcerStore) DeleteSponcer(id uint) error {
 	if err := s.db.Where("id = ?", id).Delete(models.Sponcer{}).Error; err != nil {
 		return err
 	}

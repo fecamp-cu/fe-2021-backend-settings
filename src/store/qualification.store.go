@@ -9,57 +9,59 @@ import (
 	"gorm.io/gorm"
 )
 
-var qualificationDB qualificationStore
+var qualificationDB QualificationStore
 var lockQualification sync.Once
 
-type qualificationStore struct {
+type QualificationStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
 func initQualification() {
-	qualificationDB = qualificationStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	qualificationDB = QualificationStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func GetQualificationStore() qualificationStore {
+func GetQualificationStore() QualificationStore {
 	lockQualification.Do(initQualification)
 	return qualificationDB
 }
 
-func (s *qualificationStore) CreateQualification(qualification *models.Qualification) error {
+func (s *QualificationStore) CreateQualification(qualification *models.Qualification) error {
 	if err := s.db.Create(qualification).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("qualification")
 }
 
-func (s *qualificationStore) GetAllQualification(qualification *[]models.Qualification) error {
+func (s *QualificationStore) GetAllQualification(qualification *[]models.Qualification) error {
 	err := s.redis.Get("qualification", qualification)
 	if err == redis.Nil {
 		if err := s.db.Find(qualification).Error; err != nil {
 			return err
 		}
-		s.redis.Set("qualification", qualification)
+		if err := s.redis.Set("qualification", qualification); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *qualificationStore) GetQualification(id uint, qualification *models.Qualification) error {
+func (s *QualificationStore) GetQualification(id uint, qualification *models.Qualification) error {
 	return s.db.Where("id = ?", id).First(qualification).Error
 }
 
-func (s *qualificationStore) UpdateQualification(qualification *models.Qualification) error {
+func (s *QualificationStore) UpdateQualification(qualification *models.Qualification) error {
 	if err := s.db.Save(qualification).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("qualification")
 }
 
-func (s *qualificationStore) DeleteQualification(id uint) error {
+func (s *QualificationStore) DeleteQualification(id uint) error {
 	if err := s.db.Where("id = ?", id).Delete(models.Qualification{}).Error; err != nil {
 		return err
 	}

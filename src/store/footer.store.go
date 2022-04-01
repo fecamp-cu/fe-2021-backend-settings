@@ -18,14 +18,14 @@ type footerStore struct {
 }
 
 func GetFooterStore() *footerStore {
-	lockSettings.Do(initFooterDB)
+	lockFooter.Do(initFooterDB)
 	return &footerDB
 }
 
 func initFooterDB() {
 	footerDB = footerStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
@@ -35,8 +35,8 @@ func (s *footerStore) GetFooter(footer *models.Footer) error {
 		if err := s.db.First(footer).Error; err != nil {
 			return err
 		}
-		s.redis.Set("footer", footer)
-		return nil
+		return s.redis.Set("footer", footer)
+
 	}
 	return err
 }
@@ -46,7 +46,7 @@ func (s *footerStore) UpdateFooter(footer *models.Footer) (bool, error) {
 	tmp := models.Footer{}
 	err := s.db.First(&tmp).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return isNew, err
+		return false, err
 	}
 
 	// if not found, create new

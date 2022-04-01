@@ -4,32 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
-
 	"github.com/fecamp-cu/fe-2021-backend-settings/src/configs"
 	"github.com/go-redis/redis/v8"
 )
 
-var r RedisClient
-var lockRedis sync.Once
+var RC RedisClient
 var ctx = context.Background()
 
-func initRedis() {
-	rdb := redis.NewClient(getRedisOptions())
-	r = RedisClient{rdb}
+func InitRedis(configs *configs.Configuration) {
+	rdb := redis.NewClient(getRedisOptions(configs))
+	RC = RedisClient{rdb}
 }
 
 type RedisClient struct {
 	client *redis.Client
 }
 
-func GetRedis() RedisClient {
-	lockRedis.Do(initRedis)
-	return r
-}
-
-func getRedisOptions() *redis.Options {
-	redisConfigs := configs.GetConfigs().Redis
+func getRedisOptions(configs *configs.Configuration) *redis.Options {
+	redisConfigs := configs.Redis
 	return &redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", redisConfigs.Host, redisConfigs.Port),
 		Password: redisConfigs.Password,

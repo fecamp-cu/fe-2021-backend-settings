@@ -9,57 +9,59 @@ import (
 	"gorm.io/gorm"
 )
 
-var aboutsDB aboutsStore
+var aboutsDB AboutsStore
 var lockAbouts sync.Once
 
-type aboutsStore struct {
+type AboutsStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
 func initAbouts() {
-	aboutsDB = aboutsStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	aboutsDB = AboutsStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func GetAboutsStore() aboutsStore {
+func GetAboutsStore() AboutsStore {
 	lockAbouts.Do(initAbouts)
 	return aboutsDB
 }
 
-func (s *aboutsStore) CreateAbout(about *models.About) error {
+func (s *AboutsStore) CreateAbout(about *models.About) error {
 	if err := s.db.Create(about).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("abouts")
 }
 
-func (s *aboutsStore) GetAllAbouts(abouts *[]models.About) error {
+func (s *AboutsStore) GetAllAbouts(abouts *[]models.About) error {
 	err := s.redis.Get("abouts", abouts)
 	if err == redis.Nil {
 		if err := s.db.Find(abouts).Error; err != nil {
 			return err
 		}
-		s.redis.Set("abouts", abouts)
+		if err := s.redis.Set("abouts", abouts); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *aboutsStore) GetAbout(id uint, about *models.About) error {
+func (s *AboutsStore) GetAbout(id uint, about *models.About) error {
 	return s.db.Where("id = ?", id).First(about).Error
 }
 
-func (s *aboutsStore) UpdateAbout(about *models.About) error {
+func (s *AboutsStore) UpdateAbout(about *models.About) error {
 	if err := s.db.Save(about).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("abouts")
 }
 
-func (s *aboutsStore) DeleteAbout(id uint) error {
+func (s *AboutsStore) DeleteAbout(id uint) error {
 	if err := s.db.Where("id = ?", id).Delete(models.About{}).Error; err != nil {
 		return err
 	}

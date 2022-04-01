@@ -10,39 +10,41 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var settingsDB settingsStore
+var settingsDB SettingsStore
 var lockSettings sync.Once
 
-type settingsStore struct {
+type SettingsStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
-func GetSetiingsStore() settingsStore {
+func GetSetiingsStore() SettingsStore {
 	lockSettings.Do(initsettingsStore)
 	return settingsDB
 }
 
 func initsettingsStore() {
-	settingsDB = settingsStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	settingsDB = SettingsStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func (s *settingsStore) GetAllSettings(settings *[]models.Setting) error {
+func (s *SettingsStore) GetAllSettings(settings *[]models.Setting) error {
 	err := s.redis.Get("settings", settings)
 	if err == redis.Nil {
 		if err := s.db.Find(settings).Error; err != nil {
 			return err
 		}
-		s.redis.Set("settings", settings)
+		if err := s.redis.Set("settings", settings); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *settingsStore) GetAllActiveSettings(settings *[]models.Setting) error {
+func (s *SettingsStore) GetAllActiveSettings(settings *[]models.Setting) error {
 	err := s.redis.Get("active_settings", settings)
 	if err == redis.Nil {
 		if err := s.db.Preload("Abouts", func(db *gorm.DB) *gorm.DB {
@@ -61,15 +63,15 @@ func (s *settingsStore) GetAllActiveSettings(settings *[]models.Setting) error {
 	return err
 }
 
-func (s *settingsStore) GetSetting(id uint, setting *models.Setting) error {
+func (s *SettingsStore) GetSetting(id uint, setting *models.Setting) error {
 	return s.db.First(setting, id).Error
 }
 
-func (s *settingsStore) CreateSetting(setting *models.Setting) error {
+func (s *SettingsStore) CreateSetting(setting *models.Setting) error {
 	return s.db.Create(setting).Error
 }
 
-func (s *settingsStore) UpdateSetting(setting *models.Setting) error {
+func (s *SettingsStore) UpdateSetting(setting *models.Setting) error {
 	if err := s.db.Save(setting).Error; err != nil {
 		return err
 	}
@@ -81,7 +83,7 @@ func (s *settingsStore) UpdateSetting(setting *models.Setting) error {
 	return s.redis.Delete("active_settings")
 }
 
-func (s *settingsStore) ActivateSetting(id uint) error {
+func (s *SettingsStore) ActivateSetting(id uint) error {
 	if err := s.db.Model(&models.Setting{}).Where("id = ?", id).Update("is_active", true).Error; err != nil {
 		return err
 	}
@@ -93,7 +95,7 @@ func (s *settingsStore) ActivateSetting(id uint) error {
 	return s.redis.Delete("active_settings")
 }
 
-func (s *settingsStore) DeleteSetting(id uint) error {
+func (s *SettingsStore) DeleteSetting(id uint) error {
 	if err := s.db.Where("id = ?", id).Select(clause.Associations).Delete(&models.Setting{ID: id}).Error; err != nil {
 		return err
 	}

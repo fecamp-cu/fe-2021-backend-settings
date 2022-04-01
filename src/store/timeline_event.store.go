@@ -9,57 +9,59 @@ import (
 	"gorm.io/gorm"
 )
 
-var timelineDB timelineStore
+var timelineDB TimelineStore
 var lockTimeline sync.Once
 
-type timelineStore struct {
+type TimelineStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
 func initTimeline() {
-	timelineDB = timelineStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	timelineDB = TimelineStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func GetTimelineStore() timelineStore {
+func GetTimelineStore() TimelineStore {
 	lockTimeline.Do(initTimeline)
 	return timelineDB
 }
 
-func (s *timelineStore) CreateTimeline(timeline *models.Timeline) error {
+func (s *TimelineStore) CreateTimeline(timeline *models.Timeline) error {
 	if err := s.db.Create(timeline).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("timeline")
 }
 
-func (s *timelineStore) GetAllTimeline(timeline *[]models.Timeline) error {
+func (s *TimelineStore) GetAllTimeline(timeline *[]models.Timeline) error {
 	err := s.redis.Get("timeline", timeline)
 	if err == redis.Nil {
 		if err := s.db.Find(timeline).Error; err != nil {
 			return err
 		}
-		s.redis.Set("timeline", timeline)
+		if err := s.redis.Set("timeline", timeline); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *timelineStore) GetTimeline(id uint, timeline *models.Timeline) error {
+func (s *TimelineStore) GetTimeline(id uint, timeline *models.Timeline) error {
 	return s.db.Where("id = ?", id).First(timeline).Error
 }
 
-func (s *timelineStore) UpdateTimeline(timeline *models.Timeline) error {
+func (s *TimelineStore) UpdateTimeline(timeline *models.Timeline) error {
 	if err := s.db.Save(timeline).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("timeline")
 }
 
-func (s *timelineStore) DeleteTimeline(id uint) error {
+func (s *TimelineStore) DeleteTimeline(id uint) error {
 	if err := s.db.Where("id = ?", id).Delete(models.Timeline{}).Error; err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/fecamp-cu/fe-2021-backend-settings/src/configs"
+	"github.com/fecamp-cu/fe-2021-backend-settings/src/databases"
 	"github.com/fecamp-cu/fe-2021-backend-settings/src/handlers"
 	"github.com/fecamp-cu/fe-2021-backend-settings/src/store"
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +11,10 @@ import (
 )
 
 func main() {
+	config := configs.LoadConfigs()
+	databases.InitRedis(config)
+	databases.InitGormDB(config)
+
 	r := fiber.New()
 	r.Use(logger.New())
 	r.Use(cors.New())
@@ -21,6 +26,7 @@ func main() {
 	footerRoute.Get("/", footerHandler.GetFooter)
 	footerRoute.Patch("/", footerHandler.UpdateFooter)
 
-	port := configs.GetConfigs().App.Port
-	r.Listen(":" + port)
+	if err := r.Listen(":" + config.App.Port); err != nil {
+		panic(err)
+	}
 }

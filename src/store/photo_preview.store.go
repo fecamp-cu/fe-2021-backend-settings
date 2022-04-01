@@ -9,57 +9,59 @@ import (
 	"gorm.io/gorm"
 )
 
-var photoPreviewDB photoPreviewStore
+var photoPreviewDB PhotoPreviewStore
 var lockPhotoPreview sync.Once
 
-type photoPreviewStore struct {
+type PhotoPreviewStore struct {
 	db    *gorm.DB
 	redis databases.RedisClient
 }
 
 func initPhotoPreview() {
-	photoPreviewDB = photoPreviewStore{
-		db:    databases.GetDB(),
-		redis: databases.GetRedis(),
+	photoPreviewDB = PhotoPreviewStore{
+		db:    databases.DB,
+		redis: databases.RC,
 	}
 }
 
-func GetPhotoPreviewStore() photoPreviewStore {
+func GetPhotoPreviewStore() PhotoPreviewStore {
 	lockPhotoPreview.Do(initPhotoPreview)
 	return photoPreviewDB
 }
 
-func (s *photoPreviewStore) CreatePhotoPreview(photoPreview *models.PhotoPreview) error {
+func (s *PhotoPreviewStore) CreatePhotoPreview(photoPreview *models.PhotoPreview) error {
 	if err := s.db.Create(photoPreview).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("PhotoPreview")
 }
 
-func (s *photoPreviewStore) GetAllPhotoPreview(photoPreview *[]models.PhotoPreview) error {
+func (s *PhotoPreviewStore) GetAllPhotoPreview(photoPreview *[]models.PhotoPreview) error {
 	err := s.redis.Get("PhotoPreview", photoPreview)
 	if err == redis.Nil {
 		if err := s.db.Find(photoPreview).Error; err != nil {
 			return err
 		}
-		s.redis.Set("PhotoPreview", photoPreview)
+		if err := s.redis.Set("PhotoPreview", photoPreview); err != nil {
+			return err
+		}
 		return nil
 	}
 	return err
 }
 
-func (s *photoPreviewStore) GetPhotoPreview(id uint, photoPreview *models.PhotoPreview) error {
+func (s *PhotoPreviewStore) GetPhotoPreview(id uint, photoPreview *models.PhotoPreview) error {
 	return s.db.Where("id = ?", id).First(photoPreview).Error
 }
 
-func (s *photoPreviewStore) UpdatePhotoPreview(photoPreview *models.PhotoPreview) error {
+func (s *PhotoPreviewStore) UpdatePhotoPreview(photoPreview *models.PhotoPreview) error {
 	if err := s.db.Save(photoPreview).Error; err != nil {
 		return err
 	}
 	return s.redis.Delete("PhotoPreview")
 }
 
-func (s *photoPreviewStore) DeletePhotoPreview(id uint) error {
+func (s *PhotoPreviewStore) DeletePhotoPreview(id uint) error {
 	if err := s.db.Where("id = ?", id).Delete(models.PhotoPreview{}).Error; err != nil {
 		return err
 	}
