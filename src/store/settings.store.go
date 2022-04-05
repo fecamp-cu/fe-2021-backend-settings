@@ -18,9 +18,9 @@ type SettingsStore struct {
 	redis databases.RedisClient
 }
 
-func GetSetiingsStore() SettingsStore {
+func GetSetiingsStore() *SettingsStore {
 	lockSettings.Do(initsettingsStore)
-	return settingsDB
+	return &settingsDB
 }
 
 func initsettingsStore() {
@@ -64,7 +64,7 @@ func (s *SettingsStore) GetAllActiveSettings(settings *[]models.Setting) error {
 }
 
 func (s *SettingsStore) GetSetting(id uint, setting *models.Setting) error {
-	return s.db.First(setting, id).Error
+	return s.db.Where("id = ?", id).First(setting).Error
 }
 
 func (s *SettingsStore) CreateSetting(setting *models.Setting) error {
@@ -96,7 +96,9 @@ func (s *SettingsStore) ActivateSetting(id uint) error {
 }
 
 func (s *SettingsStore) DeleteSetting(id uint) error {
-	if err := s.db.Where("id = ?", id).Select(clause.Associations).Delete(&models.Setting{ID: id}).Error; err != nil {
+	seting := &models.Setting{}
+	seting.ID = id
+	if err := s.db.Where("id = ?", id).Select(clause.Associations).Delete(seting).Error; err != nil {
 		return err
 	}
 

@@ -8,7 +8,6 @@ import (
 
 type Setting struct {
 	gorm.Model
-	ID             uint            `gorm:"primary_key" json:"id"`
 	Title          string          `gorm:"type:text;not null" json:"title"`
 	YouTubeURL     string          `gorm:"type:text;not null" json:"youtube_url"`
 	IsActive       bool            `gorm:"type:boolean;not null" json:"is_active"`
