@@ -32,17 +32,22 @@ func (s *PhotoPreviewHandler) CreatePhotoPreview(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&photoPreview); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	photoPreview.SettingID = uint(id)
 	if err := s.photoPreviewStorer.CreatePhotoPreview(&photoPreview); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 }
 
@@ -52,6 +57,8 @@ func (s *PhotoPreviewHandler) GetAllPhotoPreviews(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	ctx.JSON(http.StatusOK, photoPreviews)
 }
@@ -63,11 +70,15 @@ func (s *PhotoPreviewHandler) GetPhotoPreview(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	if err := s.photoPreviewStorer.GetPhotoPreview(uint(id), &photoPreview); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	ctx.JSON(http.StatusOK, photoPreview)
 }
@@ -79,17 +90,23 @@ func (s *PhotoPreviewHandler) UpdatePhotoPreview(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	if err := ctx.Bind(&photoPreview); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	photoPreview.ID = uint(id)
 	if err := s.photoPreviewStorer.UpdatePhotoPreview(&photoPreview); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 }
 
@@ -99,10 +116,14 @@ func (s *PhotoPreviewHandler) DeletePhotoPreview(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	if err := s.photoPreviewStorer.DeletePhotoPreview(uint(id)); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 }

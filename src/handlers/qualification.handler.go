@@ -32,17 +32,22 @@ func (s *QualificationHandler) CreateQualification(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	if err := ctx.Bind(&qualification); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
+
 	}
 	qualification.SettingID = uint(id)
 	if err := s.qualificationStorer.CreateQualification(&qualification); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -52,6 +57,7 @@ func (s *QualificationHandler) GetAllQualifications(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, qualifications)
 }
@@ -63,11 +69,13 @@ func (s *QualificationHandler) GetQualification(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.qualificationStorer.GetQualification(uint(id), &qualification); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, qualification)
 }
@@ -79,17 +87,20 @@ func (s *QualificationHandler) UpdateQualification(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&qualification); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	qualification.ID = uint(id)
 	if err := s.qualificationStorer.UpdateQualification(&qualification); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -99,10 +110,12 @@ func (s *QualificationHandler) DeleteQualification(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.qualificationStorer.DeleteQualification(uint(id)); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }

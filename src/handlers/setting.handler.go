@@ -33,20 +33,23 @@ func (s *SettingsHandler) CreateSetting(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.settingsStorer.CreateSetting(&setting); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
 func (s *SettingsHandler) GetAllSettings(ctx routers.Context) {
 	settings := []models.Setting{}
 	if err := s.settingsStorer.GetAllSettings(&settings); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, settings)
 }
@@ -57,6 +60,7 @@ func (s *SettingsHandler) GetAllActiveSettings(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, settings)
 }
@@ -67,12 +71,14 @@ func (s *SettingsHandler) GetSetting(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	setting := models.Setting{}
 	if err := s.settingsStorer.GetSetting(uint(i_id), &setting); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, setting)
 }
@@ -83,18 +89,21 @@ func (s *SettingsHandler) UpdateSetting(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	setting := models.Setting{}
 	if err := ctx.Bind(&setting); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	setting.ID = uint(i_id)
 	if err := s.settingsStorer.UpdateSetting(&setting); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -104,10 +113,12 @@ func (s *SettingsHandler) RemoveSetting(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.settingsStorer.DeleteSetting(uint(i_id)); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }

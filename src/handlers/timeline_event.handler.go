@@ -32,17 +32,20 @@ func (s *TimelineHandler) CreateTimeline(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&timeline); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	timeline.SettingID = uint(id)
 	if err := s.timelineStorer.CreateTimeline(&timeline); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -52,6 +55,7 @@ func (s *TimelineHandler) GetAllTimelines(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, timelines)
 }
@@ -63,11 +67,13 @@ func (s *TimelineHandler) GetTimeline(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.timelineStorer.GetTimeline(uint(id), &timeline); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, timeline)
 }
@@ -79,17 +85,20 @@ func (s *TimelineHandler) UpdateTimeline(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&timeline); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	timeline.ID = uint(id)
 	if err := s.timelineStorer.UpdateTimeline(&timeline); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -99,10 +108,12 @@ func (s *TimelineHandler) DeleteTimeline(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.timelineStorer.DeleteTimeline(uint(id)); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }

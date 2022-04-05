@@ -27,6 +27,7 @@ func (h *FooterHandler) GetFooter(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, footer)
 }
@@ -37,12 +38,14 @@ func (h *FooterHandler) UpdateFooter(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	isNew, err := h.footerStorer.UpdateFooter(&footer)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	status := http.StatusOK

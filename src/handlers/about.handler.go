@@ -32,17 +32,20 @@ func (s *AboutHandler) CreateAbout(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&about); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	about.SettingID = uint(id)
 	if err := s.aboutStorer.CreateAbout(&about); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -52,6 +55,7 @@ func (s *AboutHandler) GetAllAbouts(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, abouts)
 }
@@ -63,11 +67,13 @@ func (s *AboutHandler) GetAbout(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.aboutStorer.GetAbout(uint(id), &about); err != nil {
-		ctx.JSON(http.StatusBadRequest, fiber.Map{
+		ctx.JSON(http.StatusNotFound, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	ctx.JSON(http.StatusOK, about)
 }
@@ -79,17 +85,20 @@ func (s *AboutHandler) UpdateAbout(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := ctx.Bind(&about); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	about.ID = uint(id)
 	if err := s.aboutStorer.UpdateAbout(&about); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
 
@@ -99,10 +108,12 @@ func (s *AboutHandler) DeleteAbout(ctx routers.Context) {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := s.aboutStorer.DeleteAbout(uint(id)); err != nil {
 		ctx.JSON(http.StatusBadRequest, fiber.Map{
 			"error": err.Error(),
 		})
+		return
 	}
 }
