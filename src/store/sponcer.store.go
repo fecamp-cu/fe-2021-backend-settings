@@ -24,9 +24,9 @@ func initSponcer() {
 	}
 }
 
-func GetSponcerStore() SponcerStore {
+func GetSponcerStore() *SponcerStore {
 	lockSponcer.Do(initSponcer)
-	return sponcerDB
+	return &sponcerDB
 }
 
 func (s *SponcerStore) CreateSponcer(sponcer *models.Sponcer) error {

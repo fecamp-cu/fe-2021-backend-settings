@@ -24,9 +24,9 @@ func initQualification() {
 	}
 }
 
-func GetQualificationStore() QualificationStore {
+func GetQualificationStore() *QualificationStore {
 	lockQualification.Do(initQualification)
-	return qualificationDB
+	return &qualificationDB
 }
 
 func (s *QualificationStore) CreateQualification(qualification *models.Qualification) error {

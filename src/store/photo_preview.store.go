@@ -24,9 +24,9 @@ func initPhotoPreview() {
 	}
 }
 
-func GetPhotoPreviewStore() PhotoPreviewStore {
+func GetPhotoPreviewStore() *PhotoPreviewStore {
 	lockPhotoPreview.Do(initPhotoPreview)
-	return photoPreviewDB
+	return &photoPreviewDB
 }
 
 func (s *PhotoPreviewStore) CreatePhotoPreview(photoPreview *models.PhotoPreview) error {

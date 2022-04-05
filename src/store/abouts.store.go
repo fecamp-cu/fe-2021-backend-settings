@@ -24,9 +24,9 @@ func initAbouts() {
 	}
 }
 
-func GetAboutsStore() AboutsStore {
+func GetAboutsStore() *AboutsStore {
 	lockAbouts.Do(initAbouts)
-	return aboutsDB
+	return &aboutsDB
 }
 
 func (s *AboutsStore) CreateAbout(about *models.About) error {

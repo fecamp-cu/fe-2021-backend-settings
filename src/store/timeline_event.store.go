@@ -24,9 +24,9 @@ func initTimeline() {
 	}
 }
 
-func GetTimelineStore() TimelineStore {
+func GetTimelineStore() *TimelineStore {
 	lockTimeline.Do(initTimeline)
-	return timelineDB
+	return &timelineDB
 }
 
 func (s *TimelineStore) CreateTimeline(timeline *models.Timeline) error {
